@@ -191,7 +191,7 @@ def start() -> None:
         restore_audio(roop.globals.target_path, roop.globals.output_path)
     # clean temp
     update_status('Cleaning temporary resources...')
-    clean_temp(roop.globals.target_path)
+    # clean_temp(roop.globals.target_path)
     # validate video
     if is_video(roop.globals.target_path):
         update_status('Processing to video succeed!')
