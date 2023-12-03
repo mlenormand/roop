@@ -10,6 +10,7 @@ from roop.face_analyser import get_one_face, get_many_faces, find_similar_face
 from roop.face_reference import get_face_reference, set_face_reference, clear_face_reference
 from roop.typing import Face, Frame
 from roop.utilities import conditional_download, resolve_relative_path, is_image, is_video
+import os
 
 FACE_SWAPPER = None
 THREAD_LOCK = threading.Lock()
@@ -91,10 +92,24 @@ def process_image(source_path: str, target_path: str, output_path: str) -> None:
     result = process_frame(source_face, reference_face, target_frame)
     cv2.imwrite(output_path, result)
 
+def save_image(image, path, filename):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    cv2.imwrite(os.path.join(path, filename), image)
 
 def process_video(source_path: str, temp_frame_paths: List[str]) -> None:
+    debug_path = '/kaggle/working/data'  # Définissez le chemin vers le dossier de débogage
+
     if not roop.globals.many_faces and not get_face_reference():
         reference_frame = cv2.imread(temp_frame_paths[roop.globals.reference_frame_number])
+
+        save_image(reference_frame, debug_path, 'reference_frame.jpg')
+
         reference_face = get_one_face(reference_frame, roop.globals.reference_face_position)
+
+        # Vérifier si un visage a été détecté et l'enregistrer
+        if reference_face is not None:
+            save_image(reference_face, debug_path, 'detected_face.jpg')
+
         set_face_reference(reference_face)
     roop.processors.frame.core.process_video(source_path, temp_frame_paths, process_frames)
