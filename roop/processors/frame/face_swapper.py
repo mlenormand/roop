@@ -109,7 +109,7 @@ def process_video(source_path: str, temp_frame_paths: List[str]) -> None:
 
         # Vérifier si un visage a été détecté et l'enregistrer
         if reference_face is not None:
-            save_image(reference_face, debug_path, 'detected_face.jpg')
+            print('Face detected !')
 
         set_face_reference(reference_face)
     roop.processors.frame.core.process_video(source_path, temp_frame_paths, process_frames)
