@@ -101,6 +101,8 @@ def process_video(source_path: str, temp_frame_paths: List[str]) -> None:
     debug_path = '/kaggle/working/data'  # Définissez le chemin vers le dossier de débogage
 
     if not roop.globals.many_faces and not get_face_reference():
+        print(f'reference_frame_number={roop.globals.reference_frame_number}')
+        print(f'temp_frame_paths[roop.globals.reference_frame_number]={temp_frame_paths[roop.globals.reference_frame_number]}')
         reference_frame = cv2.imread(temp_frame_paths[roop.globals.reference_frame_number])
 
         save_image(reference_frame, debug_path, 'reference_frame.jpg')
