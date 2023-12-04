@@ -94,17 +94,17 @@ def process_frame(frame_number, source_face: Face, reference_face: Face, temp_fr
 
 
 def process_frames(source_path: str, temp_frame_paths: List[str], update: Callable[[], None]) -> None:
-    print('process_frames')
+    print(f'process_frames temp_frame_paths={temp_frame_paths}')
     source_face = get_one_face(cv2.imread(source_path))
     reference_face = None if roop.globals.many_faces else get_face_reference()
 
-    i=0
     for temp_frame_path in temp_frame_paths:
         temp_frame = cv2.imread(temp_frame_path)
-        print(f'Frame {i}')
-        result = process_frame(i, source_face, reference_face, temp_frame)
+        filename = temp_frame_path.split('/')[-1]
+        frame_number = int(filename.split('.')[0])
+        print(f'Frame {frame_number}')
+        result = process_frame(frame_number, source_face, reference_face, temp_frame)
         cv2.imwrite(temp_frame_path, result)
-        i=i+1
         if update:
             update()
 
