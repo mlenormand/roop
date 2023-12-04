@@ -82,7 +82,9 @@ def process_frame(frame_number, source_face: Face, reference_face: Face, temp_fr
         many_faces = get_many_faces(temp_frame)
         for face in many_faces:
             box = face.bbox.astype(int)
+            print(f'box={box}')
             for position in current_frame_positions:
+                print(f'position={position}')
                 if is_point_in_bbox((position['x'], position['y']), box):
                     print(f'Swaping face in frame {frame_number}')
                     temp_frame = swap_face(source_face, face, temp_frame)
