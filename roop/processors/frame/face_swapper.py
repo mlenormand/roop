@@ -64,6 +64,9 @@ def swap_face(source_face: Face, target_face: Face, temp_frame: Frame) -> Frame:
 def process_frame(source_face: Face, reference_face: Face, temp_frame: Frame) -> Frame:
     if roop.globals.many_faces:
         many_faces = get_many_faces(temp_frame)
+        for face in many_faces:
+            box = face.bbox.astype(int)
+            print(f'Face detected at ({box[0]}, {box[1]}), ({box[2]}, {box[3]})')
         if many_faces:
             for target_face in many_faces:
                 temp_frame = swap_face(source_face, target_face, temp_frame)
@@ -77,10 +80,14 @@ def process_frame(source_face: Face, reference_face: Face, temp_frame: Frame) ->
 def process_frames(source_path: str, temp_frame_paths: List[str], update: Callable[[], None]) -> None:
     source_face = get_one_face(cv2.imread(source_path))
     reference_face = None if roop.globals.many_faces else get_face_reference()
+
+    i=0
     for temp_frame_path in temp_frame_paths:
         temp_frame = cv2.imread(temp_frame_path)
+        print('Frame {i}')
         result = process_frame(source_face, reference_face, temp_frame)
         cv2.imwrite(temp_frame_path, result)
+        i=i+1
         if update:
             update()
 
