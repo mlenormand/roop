@@ -259,11 +259,13 @@ def update_preview(frame_number: int = 0) -> None:
             set_face_reference(reference_face)
         else:
             reference_face = get_face_reference()
+
         for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
             temp_frame = frame_processor.process_frame(
+                frame_number,
                 source_face,
                 reference_face,
-                temp_frame
+                temp_frame,
             )
         image = Image.fromarray(cv2.cvtColor(temp_frame, cv2.COLOR_BGR2RGB))
         image = ImageOps.contain(image, (PREVIEW_MAX_WIDTH, PREVIEW_MAX_HEIGHT), Image.LANCZOS)

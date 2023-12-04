@@ -60,8 +60,16 @@ def post_process() -> None:
 def swap_face(source_face: Face, target_face: Face, temp_frame: Frame) -> Frame:
     return get_face_swapper().get(temp_frame, target_face, source_face, paste_back=True)
 
+def is_point_in_bbox(point, bbox):
+    x, y = point
+    x1, y1, x2, y2 = bbox
+    return x1 <= x <= x2 and y1 <= y <= y2
 
-def process_frame(source_face: Face, reference_face: Face, temp_frame: Frame) -> Frame:
+def process_frame(frame_number, source_face: Face, reference_face: Face, temp_frame: Frame) -> Frame:
+    print('process_frame')
+    global face_positions
+    current_frame_positions = face_positions.get(f'frame_{frame_number}', [])
+
     if roop.globals.many_faces:
         many_faces = get_many_faces(temp_frame)
         for face in many_faces:
@@ -71,13 +79,19 @@ def process_frame(source_face: Face, reference_face: Face, temp_frame: Frame) ->
             for target_face in many_faces:
                 temp_frame = swap_face(source_face, target_face, temp_frame)
     else:
-        target_face = find_similar_face(temp_frame, reference_face)
-        if target_face:
-            temp_frame = swap_face(source_face, target_face, temp_frame)
+        many_faces = get_many_faces(temp_frame)
+        for face in many_faces:
+            box = face.bbox.astype(int)
+            for position in current_frame_positions:
+                if is_point_in_bbox((position['x'], position['y']), box):
+                    temp_frame = swap_face(source_face, face, temp_frame)
+                    break  # Assuming only one swap per detected face
+
     return temp_frame
 
 
 def process_frames(source_path: str, temp_frame_paths: List[str], update: Callable[[], None]) -> None:
+    print('process_frames')
     source_face = get_one_face(cv2.imread(source_path))
     reference_face = None if roop.globals.many_faces else get_face_reference()
 
@@ -85,18 +99,18 @@ def process_frames(source_path: str, temp_frame_paths: List[str], update: Callab
     for temp_frame_path in temp_frame_paths:
         temp_frame = cv2.imread(temp_frame_path)
         print('Frame {i}')
-        result = process_frame(source_face, reference_face, temp_frame)
+        result = process_frame(i, source_face, reference_face, temp_frame)
         cv2.imwrite(temp_frame_path, result)
         i=i+1
         if update:
             update()
 
 
-def process_image(source_path: str, target_path: str, output_path: str) -> None:
+def process_image(frame_number, source_path: str, target_path: str, output_path: str) -> None:
     source_face = get_one_face(cv2.imread(source_path))
     target_frame = cv2.imread(target_path)
     reference_face = None if roop.globals.many_faces else get_one_face(target_frame, roop.globals.reference_face_position)
-    result = process_frame(source_face, reference_face, target_frame)
+    result = process_frame(frame_number, source_face, reference_face, target_frame)
     cv2.imwrite(output_path, result)
 
 def save_image(image, path, filename):

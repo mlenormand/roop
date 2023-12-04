@@ -28,6 +28,7 @@ Start the program with arguments:
 python run.py [options]
 
 -h, --help                                                                 show this help message and exit
+-f FACES_PATH, --source FACES_PATH                                         select an faces yaml file
 -s SOURCE_PATH, --source SOURCE_PATH                                       select an source image
 -t TARGET_PATH, --target TARGET_PATH                                       select an target image or video
 -o OUTPUT_PATH, --output OUTPUT_PATH                                       select output file or directory

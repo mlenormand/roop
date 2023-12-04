@@ -21,14 +21,17 @@ import roop.ui as ui
 from roop.predictor import predict_image, predict_video
 from roop.processors.frame.core import get_frame_processors_modules
 from roop.utilities import has_image_extension, is_image, is_video, detect_fps, create_video, extract_frames, get_temp_frame_paths, restore_audio, create_temp, move_temp, clean_temp, normalize_output_path
+import yaml
 
 warnings.filterwarnings('ignore', category=FutureWarning, module='insightface')
 warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
+face_positions = None
 
 def parse_args() -> None:
     signal.signal(signal.SIGINT, lambda signal_number, frame: destroy())
     program = argparse.ArgumentParser(formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=100))
+    program.add_argument('-f', '--faces', help='Faces yaml file', dest='faces_path')
     program.add_argument('-s', '--source', help='select an source image', dest='source_path')
     program.add_argument('-t', '--target', help='select an target image or video', dest='target_path')
     program.add_argument('-o', '--output', help='select output file or directory', dest='output_path')
@@ -53,6 +56,7 @@ def parse_args() -> None:
 
     roop.globals.source_path = args.source_path
     roop.globals.target_path = args.target_path
+    roop.globals.faces_path = args.faces_path
     roop.globals.output_path = normalize_output_path(roop.globals.source_path, roop.globals.target_path, args.output_path)
     roop.globals.headless = roop.globals.source_path is not None and roop.globals.target_path is not None and roop.globals.output_path is not None
     roop.globals.frame_processors = args.frame_processor
@@ -129,6 +133,10 @@ def update_status(message: str, scope: str = 'ROOP.CORE') -> None:
 
 
 def start() -> None:
+    global face_positions
+    with open(roop.globals.faces_path, 'r') as file:
+        face_positions = yaml.safe_load(file)
+
     for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
         if not frame_processor.pre_start():
             return
@@ -140,7 +148,7 @@ def start() -> None:
         # process frame
         for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
             update_status('Progressing...', frame_processor.NAME)
-            frame_processor.process_image(roop.globals.source_path, roop.globals.output_path, roop.globals.output_path)
+            frame_processor.process_image(0, roop.globals.source_path, roop.globals.output_path, roop.globals.output_path)
             frame_processor.post_process()
         # validate image
         if is_image(roop.globals.target_path):
