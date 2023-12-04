@@ -94,7 +94,7 @@ def process_frame(frame_number, source_face: Face, reference_face: Face, temp_fr
 
 
 def process_frames(source_path: str, temp_frame_paths: List[str], update: Callable[[], None]) -> None:
-    print(f'process_frames temp_frame_paths={temp_frame_paths}')
+    print(f'process_frames')
     source_face = get_one_face(cv2.imread(source_path))
     reference_face = None if roop.globals.many_faces else get_face_reference()
 
