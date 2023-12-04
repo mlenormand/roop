@@ -78,12 +78,13 @@ def process_frame(frame_number, source_face: Face, reference_face: Face, temp_fr
                 temp_frame = swap_face(source_face, target_face, temp_frame)
     else:
         current_frame_positions = roop.globals.face_positions.get(f'frame_{frame_number}', [])
-
+        print(f'current_frame_positions={current_frame_positions}')
         many_faces = get_many_faces(temp_frame)
         for face in many_faces:
             box = face.bbox.astype(int)
             for position in current_frame_positions:
                 if is_point_in_bbox((position['x'], position['y']), box):
+                    print(f'Swaping face in frame {frame_number}')
                     temp_frame = swap_face(source_face, face, temp_frame)
                     break  # Assuming only one swap per detected face
 
