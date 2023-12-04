@@ -26,8 +26,6 @@ import yaml
 warnings.filterwarnings('ignore', category=FutureWarning, module='insightface')
 warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
-face_positions = None
-
 def parse_args() -> None:
     signal.signal(signal.SIGINT, lambda signal_number, frame: destroy())
     program = argparse.ArgumentParser(formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=100))
@@ -133,9 +131,9 @@ def update_status(message: str, scope: str = 'ROOP.CORE') -> None:
 
 
 def start() -> None:
-    global face_positions
-    with open(roop.globals.faces_path, 'r') as file:
-        face_positions = yaml.safe_load(file)
+    if (roop.globals.faces_path):
+        with open(roop.globals.faces_path, 'r') as file:
+            roop.globals.face_positions = yaml.safe_load(file)
 
     for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
         if not frame_processor.pre_start():

@@ -67,8 +67,6 @@ def is_point_in_bbox(point, bbox):
 
 def process_frame(frame_number, source_face: Face, reference_face: Face, temp_frame: Frame) -> Frame:
     print('process_frame')
-    global face_positions
-    current_frame_positions = face_positions.get(f'frame_{frame_number}', [])
 
     if roop.globals.many_faces:
         many_faces = get_many_faces(temp_frame)
@@ -79,6 +77,8 @@ def process_frame(frame_number, source_face: Face, reference_face: Face, temp_fr
             for target_face in many_faces:
                 temp_frame = swap_face(source_face, target_face, temp_frame)
     else:
+        current_frame_positions = roop.globals.face_positions.get(f'frame_{frame_number}', [])
+
         many_faces = get_many_faces(temp_frame)
         for face in many_faces:
             box = face.bbox.astype(int)
@@ -98,7 +98,7 @@ def process_frames(source_path: str, temp_frame_paths: List[str], update: Callab
     i=0
     for temp_frame_path in temp_frame_paths:
         temp_frame = cv2.imread(temp_frame_path)
-        print('Frame {i}')
+        print(f'Frame {i}')
         result = process_frame(i, source_face, reference_face, temp_frame)
         cv2.imwrite(temp_frame_path, result)
         i=i+1
