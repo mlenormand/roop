@@ -72,7 +72,7 @@ def process_frame(frame_number, source_face: Face, reference_face: Face, temp_fr
         many_faces = get_many_faces(temp_frame)
         for face in many_faces:
             box = face.bbox.astype(int)
-            print(f'Face detected at ({box[0]}, {box[1]}), ({box[2]}, {box[3]})')
+            print(f'Frame {frame_number}: Face detected at ({box[0]}, {box[1]}), ({box[2]}, {box[3]})')
         if many_faces:
             for target_face in many_faces:
                 temp_frame = swap_face(source_face, target_face, temp_frame)
