@@ -77,6 +77,8 @@ def process_frame(frame_number, source_face: Face, reference_face: Face, temp_fr
             for target_face in many_faces:
                 temp_frame = swap_face(source_face, target_face, temp_frame)
     else:
+        frame_width = temp_frame.shape[1]
+        frame_height = temp_frame.shape[0]
         current_frame_positions = roop.globals.face_positions.get(f'frame_{frame_number}', [])
         print(f'current_frame_positions={current_frame_positions}')
         many_faces = get_many_faces(temp_frame)
@@ -84,8 +86,12 @@ def process_frame(frame_number, source_face: Face, reference_face: Face, temp_fr
             box = face.bbox.astype(int)
             print(f'box={box}')
             for position in current_frame_positions:
-                print(f'position={position}')
-                if is_point_in_bbox((position['x'], position['y']), box):
+                # Convertir les coordonnées relatives en coordonnées absolues
+                absolute_x = int(position['x'] * frame_width)
+                absolute_y = int(position['y'] * frame_height)
+                print(f'position={position}, absolute_position=({absolute_x}, {absolute_y})')
+
+                if is_point_in_bbox((absolute_x, absolute_y), box):
                     print(f'Swaping face in frame {frame_number}')
                     temp_frame = swap_face(source_face, face, temp_frame)
                     break  # Assuming only one swap per detected face
