@@ -86,9 +86,14 @@ def process_frame(frame_number, source_face: Face, reference_face: Face, temp_fr
             box = face.bbox.astype(int)
             print(f'box={box}')
             for position in current_frame_positions:
-                # Convertir les coordonnées relatives en coordonnées absolues
-                absolute_x = int(position['x'] * frame_width)
-                absolute_y = int(position['y'] * frame_height)
+                if 0 <= position['x'] <= 1 and 0 <= position['y'] <= 1:
+                    # Convertir les coordonnées relatives en coordonnées absolues
+                    absolute_x = int(position['x'] * frame_width)
+                    absolute_y = int(position['y'] * frame_height)
+                else:
+                    # Utiliser les positions absolues telles quelles
+                    absolute_x = int(position['x'])
+                    absolute_y = int(position['y'])
                 print(f'position={position}, absolute_position=({absolute_x}, {absolute_y})')
 
                 if is_point_in_bbox((absolute_x, absolute_y), box):
