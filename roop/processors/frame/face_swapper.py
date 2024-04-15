@@ -68,40 +68,56 @@ def is_point_in_bbox(point, bbox):
 def process_frame(frame_number, source_face: Face, reference_face: Face, temp_frame: Frame) -> Frame:
     print('process_frame')
 
-    if roop.globals.many_faces:
-        many_faces = get_many_faces(temp_frame)
-        for face in many_faces:
-            box = face.bbox.astype(int)
-            print(f'Frame {frame_number}: Face detected at ({box[0]}, {box[1]}), ({box[2]}, {box[3]})')
-        if many_faces:
-            for target_face in many_faces:
-                temp_frame = swap_face(source_face, target_face, temp_frame)
-    else:
-        frame_width = temp_frame.shape[1]
-        frame_height = temp_frame.shape[0]
-        current_frame_positions = roop.globals.face_positions.get(f'frame_{frame_number}', [])
-        print(f'current_frame_positions={current_frame_positions}')
-        many_faces = get_many_faces(temp_frame)
-        for face in many_faces:
-            box = face.bbox.astype(int)
-            print(f'box={box}')
-            for position in current_frame_positions:
-                if 0 <= position['x'] <= 1 and 0 <= position['y'] <= 1:
-                    # Convertir les coordonnées relatives en coordonnées absolues
-                    absolute_x = int(position['x'] * frame_width)
-                    absolute_y = int(position['y'] * frame_height)
-                else:
-                    # Utiliser les positions absolues telles quelles
-                    absolute_x = int(position['x'])
-                    absolute_y = int(position['y'])
-                print(f'position={position}, absolute_position=({absolute_x}, {absolute_y})')
+    frame_width = temp_frame.shape[1]
+    frame_height = temp_frame.shape[0]
+    current_frame_positions = roop.globals.face_positions.get(f'frame_{frame_number}', [])
+    print(f'current_frame_positions={current_frame_positions}')
 
-                if is_point_in_bbox((absolute_x, absolute_y), box):
-                    print(f'Swaping face in frame {frame_number}')
-                    temp_frame = swap_face(source_face, face, temp_frame)
-                    break  # Assuming only one swap per detected face
+    many_faces = get_many_faces(temp_frame)
+    for face in many_faces:
+        face_bbox = [face.bbox[0], face.bbox[1], face.bbox[0] + face.bbox[2], face.bbox[1] + face.bbox[3]]
+        print(f'Frame {frame_number}: Face detected at {face_bbox}')
+
+        for position in current_frame_positions:
+            # Conversion des coordonnées relatives en coordonnées absolues
+            rect_x = int(position['x'] * frame_width if 0 <= position['x'] <= 1 else position['x'])
+            rect_y = int(position['y'] * frame_height if 0 <= position['y'] <= 1 else position['y'])
+            rect_w = int(position['w'] * frame_width)
+            rect_h = int(position['h'] * frame_height)
+            rect_bbox = [rect_x, rect_y, rect_x + rect_w, rect_y + rect_h]
+
+            print(f'Checking intersection with rectangle: {rect_bbox}')
+            if rectangles_intersect(face_bbox, rect_bbox):
+                num = position['num']
+                print(f'Swapping face with image #{num} in frame {frame_number}')
+                face_image_path = roop.globals.face_images.get(num)
+                if face_image_path:
+                    replacement_face = cv2.imread(face_image_path)
+                    temp_frame = swap_face(replacement_face, face, temp_frame)
+                break  # Suppose un seul remplacement par visage détecté
 
     return temp_frame
+
+
+def rectangles_intersect(r1, r2):
+    """Vérifie si deux rectangles r1 et r2 s'intersectent."""
+    x1, y1, x2, y2 = r1  # Rectangle 1
+    x3, y3, x4, y4 = r2  # Rectangle 2
+
+    # Vérifier si les rectangles se chevauchent horizontalement et verticalement
+    horizontal_overlap = (x1 <= x4) and (x3 <= x2)
+    vertical_overlap = (y1 <= y4) and (y3 <= y2)
+
+    return horizontal_overlap and vertical_overlap
+
+
+def parse_face_images(args):
+    face_images = {}
+    for i in range(1, 10):  # Assumant que vous avez des images numérotées de 1 à 9
+        face_image_path = getattr(args, f'face{i}', None)
+        if face_image_path:
+            face_images[i] = face_image_path
+    return face_images
 
 
 def process_frames(source_path: str, temp_frame_paths: List[str], update: Callable[[], None]) -> None:

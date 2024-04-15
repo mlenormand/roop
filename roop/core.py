@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from collections import defaultdict
 import os
 import sys
 # single thread doubles cuda performance - needs to be set before torch import
@@ -50,6 +51,10 @@ def parse_args() -> None:
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
     program.add_argument('-v', '--version', action='version', version=f'{roop.metadata.name} {roop.metadata.version}')
 
+    # Ajout dynamique d'arguments pour les visages
+    for i in range(1, 10):  # Supposons que vous avez jusqu'à 9 visages différents
+        program.add_argument(f'--face{i}', help=f'Path to face image {i}', dest=f'face{i}_path')
+
     args = program.parse_args()
 
     roop.globals.source_path = args.source_path
@@ -73,6 +78,11 @@ def parse_args() -> None:
     roop.globals.execution_providers = decode_execution_providers(args.execution_provider)
     roop.globals.execution_threads = args.execution_threads
 
+    roop.globals.face_images = {}
+    for i in range(1, 10):
+        face_path = getattr(args, f'face{i}_path', None)
+        if face_path:
+            roop.globals.face_images[i] = face_path
 
 def encode_execution_providers(execution_providers: List[str]) -> List[str]:
     return [execution_provider.replace('ExecutionProvider', '').lower() for execution_provider in execution_providers]
@@ -129,11 +139,23 @@ def update_status(message: str, scope: str = 'ROOP.CORE') -> None:
     if not roop.globals.headless:
         ui.update_status(message)
 
+def load_face_data(self):
+    with open(roop.globals.faces_path, 'r') as file:
+        data = yaml.safe_load(file)
+    self.face_data = defaultdict(list)
+    for frame_id, entries in data.items():
+        frame_number = int(frame_id.replace('frame_', ''))
+        for entry in entries:
+            x = entry['x'] * self.width
+            y = entry['y'] * self.height
+            w = entry['w'] * self.width
+            h = entry['h'] * self.height
+            num = entry['num']
+            self.face_data[frame_number].append((x, y, w, h, num))
 
-def start() -> None:
+def start(self) -> None:
     if (roop.globals.faces_path):
-        with open(roop.globals.faces_path, 'r') as file:
-            roop.globals.face_positions = yaml.safe_load(file)
+        self.load_face_data
 
     for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
         if not frame_processor.pre_start():
