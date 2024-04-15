@@ -79,7 +79,6 @@ def process_frame(frame_number, source_face: Face, reference_face: Face, temp_fr
         print(f'Frame {frame_number}: Face detected at {face_bbox}')
 
         for position in current_frame_positions:
-            # Conversion des coordonnées relatives en coordonnées absolues
             rect_x = int(position['x'] * frame_width if 0 <= position['x'] <= 1 else position['x'])
             rect_y = int(position['y'] * frame_height if 0 <= position['y'] <= 1 else position['y'])
             rect_w = int(position['w'] * frame_width)
@@ -89,14 +88,20 @@ def process_frame(frame_number, source_face: Face, reference_face: Face, temp_fr
             print(f'Checking intersection with rectangle: {rect_bbox}')
             if rectangles_intersect(face_bbox, rect_bbox):
                 num = position['num']
-                print(f'Swapping face with image #{num} in frame {frame_number}')
                 face_image_path = roop.globals.face_images.get(num)
-                if face_image_path:
+                if face_image_path:  # Vérifie si le chemin du visage est disponible
+                    print(f'Swapping face with image #{num} in frame {frame_number}')
                     replacement_face = cv2.imread(face_image_path)
-                    temp_frame = swap_face(replacement_face, face, temp_frame)
+                    if replacement_face is not None:
+                        temp_frame = swap_face(replacement_face, face, temp_frame)
+                    else:
+                        print(f"Error loading face image for image #{num}, skipping face swap.")
+                else:
+                    print(f'Face image #{num} not provided, skipping face swap.')
                 break  # Suppose un seul remplacement par visage détecté
 
     return temp_frame
+
 
 
 def rectangles_intersect(r1, r2):
