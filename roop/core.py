@@ -139,23 +139,23 @@ def update_status(message: str, scope: str = 'ROOP.CORE') -> None:
     if not roop.globals.headless:
         ui.update_status(message)
 
-def load_face_data(self):
+def load_face_data():
     with open(roop.globals.faces_path, 'r') as file:
         data = yaml.safe_load(file)
-    self.face_data = defaultdict(list)
+    roop.globals.face_data = defaultdict(list)
     for frame_id, entries in data.items():
         frame_number = int(frame_id.replace('frame_', ''))
         for entry in entries:
-            x = entry['x'] * self.width
-            y = entry['y'] * self.height
-            w = entry['w'] * self.width
-            h = entry['h'] * self.height
+            x = entry['x'] * roop.globals.width  # Assuming width is stored globally
+            y = entry['y'] * roop.globals.height  # Assuming height is stored globally
+            w = entry['w'] * roop.globals.width
+            h = entry['h'] * roop.globals.height
             num = entry['num']
-            self.face_data[frame_number].append((x, y, w, h, num))
+            roop.globals.face_data[frame_number].append((x, y, w, h, num))
 
-def start(self) -> None:
+def start() -> None:
     if (roop.globals.faces_path):
-        self.load_face_data
+        load_face_data
 
     for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
         if not frame_processor.pre_start():
