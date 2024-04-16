@@ -157,7 +157,7 @@ def start() -> None:
     # Utilisez roop.globals.face_images pour accéder aux chemins des images de visage
     for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
         for face_index, face_path in roop.globals.face_images.items():
-            if not frame_processor.pre_start(face_path):
+            if not frame_processor.pre_start():
                 return
 
    # process image to image
