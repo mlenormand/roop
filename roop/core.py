@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from collections import defaultdict
 import os
 import sys
 # single thread doubles cuda performance - needs to be set before torch import
@@ -50,6 +51,10 @@ def parse_args() -> None:
     program.add_argument('--execution-provider', help='available execution provider (choices: cpu, ...)', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
     program.add_argument('-v', '--version', action='version', version=f'{roop.metadata.name} {roop.metadata.version}')
+
+    # Ajout dynamique d'arguments pour les visages
+    for i in range(1, 10):  # Supposons que vous avez jusqu'à 9 visages différents
+        program.add_argument(f'--face{i}', help=f'Path to face image {i}', dest=f'face{i}_path')
 
     args = program.parse_args()
 
@@ -136,16 +141,29 @@ def update_status(message: str, scope: str = 'ROOP.CORE') -> None:
     if not roop.globals.headless:
         ui.update_status(message)
 
+def load_face_data():
+    with open(roop.globals.faces_path, 'r') as file:
+        data = yaml.safe_load(file)
+    roop.globals.face_data = defaultdict(list)
+    for frame_id, entries in data.items():
+        frame_number = int(frame_id.replace('frame_', ''))
+        for entry in entries:
+            x = entry['x'] * roop.globals.width  # Assuming width is stored globally
+            y = entry['y'] * roop.globals.height  # Assuming height is stored globally
+            w = entry['w'] * roop.globals.width
+            h = entry['h'] * roop.globals.height
+            num = entry['num']
+            roop.globals.face_data[frame_number].append((x, y, w, h, num))
 
 def start() -> None:
     if (roop.globals.faces_path):
-        with open(roop.globals.faces_path, 'r') as file:
-            roop.globals.face_positions = yaml.safe_load(file)
+        load_face_data
 
     for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
         if not frame_processor.pre_start():
             return
-    # process image to image
+
+   # process image to image
     if has_image_extension(roop.globals.target_path):
         for source_path in roop.globals.source_paths:  # Iterate over each source path
             if predict_image(roop.globals.target_path):
@@ -175,6 +193,7 @@ def start() -> None:
     else:
         update_status('Extracting frames with 30 FPS...')
         extract_frames(roop.globals.target_path)
+
     # process frame
     temp_frame_paths = get_temp_frame_paths(roop.globals.target_path)
     if temp_frame_paths:
@@ -186,6 +205,7 @@ def start() -> None:
     else:
         update_status('Frames not found...')
         return
+
     # create video
     if roop.globals.keep_fps:
         fps = detect_fps(roop.globals.target_path)
@@ -194,6 +214,7 @@ def start() -> None:
     else:
         update_status('Creating video with 30 FPS...')
         create_video(roop.globals.target_path)
+
     # handle audio
     if roop.globals.skip_audio:
         move_temp(roop.globals.target_path, roop.globals.output_path)
@@ -204,9 +225,11 @@ def start() -> None:
         else:
             update_status('Restoring audio might cause issues as fps are not kept...')
         restore_audio(roop.globals.target_path, roop.globals.output_path)
+
     # clean temp
     update_status('Cleaning temporary resources...')
     clean_temp(roop.globals.target_path)
+
     # validate video
     if is_video(roop.globals.target_path):
         update_status('Processing to video succeed!')
