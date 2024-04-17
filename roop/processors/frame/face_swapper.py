@@ -77,7 +77,7 @@ def is_point_in_bbox(point, bbox):
     x1, y1, x2, y2 = bbox
     return x1 <= x <= x2 and y1 <= y <= y2
 
-def process_frame(frame_number, source_face: Face, reference_face: Face, temp_frame: Frame) -> Frame:
+def process_frame(frame_number, temp_frame: Frame) -> Frame:
     print('process_frame')
 
     frame_width = temp_frame.shape[1]
@@ -100,7 +100,7 @@ def process_frame(frame_number, source_face: Face, reference_face: Face, temp_fr
             print(f'Checking intersection with rectangle: {rect_bbox}')
             if rectangles_intersect(face_bbox, rect_bbox):
                 num = position['num']
-                face_image_path = roop.globals.face_images.get(num)
+                face_image_path = roop.globals.face_paths[num - 1] if num <= len(roop.globals.face_paths) else None
                 if face_image_path:  # Vérifie si le chemin du visage est disponible
                     print(f'Swapping face with image #{num} in frame {frame_number}')
                     replacement_face = cv2.imread(face_image_path)
@@ -139,15 +139,13 @@ def parse_face_images(args):
 
 def process_frames(source_path: str, temp_frame_paths: List[str], update: Callable[[], None]) -> None:
     print(f'process_frames')
-    source_face = get_one_face(cv2.imread(source_path))
-    reference_face = None if roop.globals.many_faces else get_face_reference()
 
     for temp_frame_path in temp_frame_paths:
         temp_frame = cv2.imread(temp_frame_path)
         filename = temp_frame_path.split('/')[-1]
         frame_number = int(filename.split('.')[0])
         print(f'Frame {frame_number}')
-        result = process_frame(frame_number, source_face, reference_face, temp_frame)
+        result = process_frame(frame_number, temp_frame)
         cv2.imwrite(temp_frame_path, result)
         if update:
             update()

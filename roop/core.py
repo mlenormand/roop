@@ -52,15 +52,11 @@ def parse_args() -> None:
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
     program.add_argument('-v', '--version', action='version', version=f'{roop.metadata.name} {roop.metadata.version}')
 
-    # Ajout dynamique d'arguments pour les visages
-    for i in range(1, 10):  # Supposons que vous avez jusqu'à 9 visages différents
-        program.add_argument(f'--face{i}', help=f'Path to face image {i}', dest=f'face{i}_path')
-
     args = program.parse_args()
 
     roop.globals.target_path = args.target_path
     roop.globals.faces_path = args.faces_path
-    roop.globals.output_path = normalize_output_path(roop.globals.source_folder, roop.globals.target_path, args.output_path)
+    roop.globals.output_path = normalize_output_path(args.source_folder, roop.globals.target_path, args.output_path)
     roop.globals.headless = roop.globals.source_folder is not None and roop.globals.target_path is not None and roop.globals.output_path is not None
     roop.globals.frame_processors = args.frame_processor
     roop.globals.keep_fps = args.keep_fps
