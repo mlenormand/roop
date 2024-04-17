@@ -177,5 +177,5 @@ def process_video(source_paths: List[str], temp_frame_paths: List[str]) -> None:
             print('Face detected !')
         set_face_reference(reference_face)
     for source_path in source_paths:
-        roop.processors.frame.core.process_video(source_path, temp_frame_paths, lambda source_path=source_path: process_frames(source_path, temp_frame_paths, lambda: None))
+        roop.processors.frame.core.process_video(source_path, temp_frame_paths, lambda: process_frames(source_path, temp_frame_paths, lambda: None))
 
