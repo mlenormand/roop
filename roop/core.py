@@ -30,7 +30,8 @@ def parse_args() -> None:
     signal.signal(signal.SIGINT, lambda signal_number, frame: destroy())
     program = argparse.ArgumentParser(formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=100))
     program.add_argument('-f', '--faces', help='Faces yaml file', dest='faces_path')
-    program.add_argument('-s', '--source', help='select an source image', dest='source_path')
+    program.add_argument('-sf', '--source-folder', help='Path to the folder containing source images', dest='source_folder')
+    program.add_argument('-sfs', '--source-files', help='Comma-separated filenames of the source images', dest='source_files')
     program.add_argument('-t', '--target', help='select an target image or video', dest='target_path')
     program.add_argument('-o', '--output', help='select output file or directory', dest='output_path')
     program.add_argument('--frame-processor', help='frame processors (choices: face_swapper, face_enhancer, ...)', dest='frame_processor', default=['face_swapper'], nargs='+')
@@ -52,11 +53,10 @@ def parse_args() -> None:
 
     args = program.parse_args()
 
-    roop.globals.source_path = args.source_path
     roop.globals.target_path = args.target_path
     roop.globals.faces_path = args.faces_path
-    roop.globals.output_path = normalize_output_path(roop.globals.source_path, roop.globals.target_path, args.output_path)
-    roop.globals.headless = roop.globals.source_path is not None and roop.globals.target_path is not None and roop.globals.output_path is not None
+    roop.globals.output_path = normalize_output_path(roop.globals.source_folder, roop.globals.target_path, args.output_path)
+    roop.globals.headless = roop.globals.source_folder is not None and roop.globals.target_path is not None and roop.globals.output_path is not None
     roop.globals.frame_processors = args.frame_processor
     roop.globals.keep_fps = args.keep_fps
     roop.globals.keep_frames = args.keep_frames
@@ -72,6 +72,13 @@ def parse_args() -> None:
     roop.globals.max_memory = args.max_memory
     roop.globals.execution_providers = decode_execution_providers(args.execution_provider)
     roop.globals.execution_threads = args.execution_threads
+
+    # Handle source paths
+    if args.source_folder and args.source_files:
+        file_names = args.source_files.split(',')
+        roop.globals.source_paths = [os.path.join(args.source_folder, file_name.strip()) for file_name in file_names]
+    else:
+        roop.globals.source_paths = []
 
 
 def encode_execution_providers(execution_providers: List[str]) -> List[str]:
@@ -140,20 +147,21 @@ def start() -> None:
             return
     # process image to image
     if has_image_extension(roop.globals.target_path):
-        if predict_image(roop.globals.target_path):
-            destroy()
-        shutil.copy2(roop.globals.target_path, roop.globals.output_path)
-        # process frame
-        for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
-            update_status('Progressing...', frame_processor.NAME)
-            frame_processor.process_image(0, roop.globals.source_path, roop.globals.output_path, roop.globals.output_path)
-            frame_processor.post_process()
-        # validate image
-        if is_image(roop.globals.target_path):
-            update_status('Processing to image succeed!')
-        else:
-            update_status('Processing to image failed!')
-        return
+        for source_path in roop.globals.source_paths:  # Iterate over each source path
+            if predict_image(roop.globals.target_path):
+                destroy()
+            shutil.copy2(roop.globals.target_path, roop.globals.output_path)
+            # process frame
+            for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
+                update_status('Progressing...', frame_processor.NAME)
+                frame_processor.process_image(0, source_path, roop.globals.output_path, roop.globals.output_path)
+                frame_processor.post_process()
+            # validate image
+            if is_image(roop.globals.target_path):
+                update_status('Processing to image succeed!')
+            else:
+                update_status('Processing to image failed!')
+        return  # Return after processing all source images
     # process image to videos
     if predict_video(roop.globals.target_path):
         destroy()
@@ -170,10 +178,11 @@ def start() -> None:
     # process frame
     temp_frame_paths = get_temp_frame_paths(roop.globals.target_path)
     if temp_frame_paths:
-        for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
-            update_status('Progressing...', frame_processor.NAME)
-            frame_processor.process_video(roop.globals.source_path, temp_frame_paths)
-            frame_processor.post_process()
+        for source_path in roop.globals.source_paths:  # Iterate over each source path for video processing
+            for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
+                update_status('Progressing...', frame_processor.NAME)
+                frame_processor.process_video(source_path, temp_frame_paths)
+                frame_processor.post_process()
     else:
         update_status('Frames not found...')
         return

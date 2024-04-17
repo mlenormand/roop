@@ -64,12 +64,11 @@ def create_root(start: Callable[[], None], destroy: Callable[[], None]) -> ctk.C
     root.configure()
     root.protocol('WM_DELETE_WINDOW', lambda: destroy())
 
-    source_label = ctk.CTkLabel(root, text=None, fg_color=ctk.ThemeManager.theme.get('RoopDropArea').get('fg_color'))
+    # Source label updated for multiple source handling
+    source_label = ctk.CTkLabel(root, text='No files selected', fg_color=ctk.ThemeManager.theme.get('RoopDropArea').get('fg_color'))
     source_label.place(relx=0.1, rely=0.1, relwidth=0.3, relheight=0.25)
     source_label.drop_target_register(DND_ALL)
-    source_label.dnd_bind('<<Drop>>', lambda event: select_source_path(event.data))
-    if roop.globals.source_path:
-        select_source_path(roop.globals.source_path)
+    source_label.dnd_bind('<<Drop>>', lambda event: select_source_paths())  # Adjust to handle multiple files
 
     target_label = ctk.CTkLabel(root, text=None, fg_color=ctk.ThemeManager.theme.get('RoopDropArea').get('fg_color'))
     target_label.place(relx=0.6, rely=0.1, relwidth=0.3, relheight=0.25)
@@ -78,7 +77,7 @@ def create_root(start: Callable[[], None], destroy: Callable[[], None]) -> ctk.C
     if roop.globals.target_path:
         select_target_path(roop.globals.target_path)
 
-    source_button = ctk.CTkButton(root, text='Select a face', cursor='hand2', command=lambda: select_source_path())
+    source_button = ctk.CTkButton(root, text='Select source images', cursor='hand2', command=select_source_paths)
     source_button.place(relx=0.1, rely=0.4, relwidth=0.3, relheight=0.1)
 
     target_button = ctk.CTkButton(root, text='Select a target', cursor='hand2', command=lambda: select_target_path())
@@ -120,6 +119,7 @@ def create_root(start: Callable[[], None], destroy: Callable[[], None]) -> ctk.C
     return root
 
 
+
 def create_preview(parent: ctk.CTkToplevel) -> ctk.CTkToplevel:
     global preview_label, preview_slider
 
@@ -144,21 +144,22 @@ def update_status(text: str) -> None:
     ROOT.update()
 
 
-def select_source_path(source_path: Optional[str] = None) -> None:
+def select_source_paths() -> None:
     global RECENT_DIRECTORY_SOURCE
 
     if PREVIEW:
         PREVIEW.withdraw()
-    if source_path is None:
-        source_path = ctk.filedialog.askopenfilename(title='select an source image', initialdir=RECENT_DIRECTORY_SOURCE)
-    if is_image(source_path):
-        roop.globals.source_path = source_path
-        RECENT_DIRECTORY_SOURCE = os.path.dirname(roop.globals.source_path)
-        image = render_image_preview(roop.globals.source_path, (200, 200))
-        source_label.configure(image=image)
+    
+    file_paths = ctk.filedialog.askopenfilenames(title='Select source images', initialdir=RECENT_DIRECTORY_SOURCE)
+    if file_paths:
+        roop.globals.source_paths = list(file_paths)
+        RECENT_DIRECTORY_SOURCE = os.path.dirname(file_paths[0])  # Assume all files are in the same directory
+        images = [render_image_preview(path, (50, 50)) for path in file_paths]  # Reduce size for multiple images
+        # Example handling: Update label to show number of files selected
+        source_label.configure(text=f'{len(file_paths)} files selected')
     else:
-        roop.globals.source_path = None
-        source_label.configure(image=None)
+        roop.globals.source_paths = []
+        source_label.configure(text='No files selected')
 
 
 def select_target_path(target_path: Optional[str] = None) -> None:
@@ -226,7 +227,7 @@ def toggle_preview() -> None:
         PREVIEW.unbind('<Left>')
         PREVIEW.withdraw()
         clear_predictor()
-    elif roop.globals.source_path and roop.globals.target_path:
+    elif roop.globals.source_paths and roop.globals.target_path:  # Utilisez source_paths pour vérifier la présence de fichiers source
         init_preview()
         update_preview(roop.globals.reference_frame_number)
         PREVIEW.deiconify()
@@ -234,8 +235,6 @@ def toggle_preview() -> None:
 
 def init_preview() -> None:
     PREVIEW.title('Preview [ ↕ Reference face ]')
-    if is_image(roop.globals.target_path):
-        preview_slider.pack_forget()
     if is_video(roop.globals.target_path):
         video_frame_total = get_video_frame_total(roop.globals.target_path)
         if video_frame_total > 0:
@@ -248,11 +247,18 @@ def init_preview() -> None:
 
 
 def update_preview(frame_number: int = 0) -> None:
-    if roop.globals.source_path and roop.globals.target_path:
+    if roop.globals.source_paths and roop.globals.target_path:  # Utilisez source_paths pour vérifier la présence de fichiers source
+        # Assumer que la prévisualisation peut afficher seulement un aperçu à la fois
+        # On pourrait aussi envisager un mécanisme pour parcourir les différentes sources
+
+        # Ici, nous prenons simplement le premier fichier de la liste comme exemple
+        first_source_path = roop.globals.source_paths[0]
         temp_frame = get_video_frame(roop.globals.target_path, frame_number)
         if predict_frame(temp_frame):
             sys.exit()
-        source_face = get_one_face(cv2.imread(roop.globals.source_path))
+        
+        # Extraire et traiter le visage de la première source
+        source_face = get_one_face(cv2.imread(first_source_path))
         if not get_face_reference():
             reference_frame = get_video_frame(roop.globals.target_path, roop.globals.reference_frame_number)
             reference_face = get_one_face(reference_frame, roop.globals.reference_face_position)
@@ -260,6 +266,7 @@ def update_preview(frame_number: int = 0) -> None:
         else:
             reference_face = get_face_reference()
 
+        # Traiter le cadre avec chaque processeur de frame en utilisant le visage de la première source
         for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
             temp_frame = frame_processor.process_frame(
                 frame_number,

@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-source_path: Optional[str] = None
+source_paths: List[str] = []
 faces_path: Optional[str] = None
 target_path: Optional[str] = None
 output_path: Optional[str] = None

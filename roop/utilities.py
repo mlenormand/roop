@@ -84,9 +84,9 @@ def get_temp_output_path(target_path: str) -> str:
     return os.path.join(temp_directory_path, TEMP_VIDEO_FILE)
 
 
-def normalize_output_path(source_path: str, target_path: str, output_path: str) -> Optional[str]:
-    if source_path and target_path and output_path:
-        source_name, _ = os.path.splitext(os.path.basename(source_path))
+def normalize_output_path(source_folder: str, target_path: str, output_path: str) -> Optional[str]:
+    if source_folder and target_path and output_path:
+        source_name, _ = os.path.splitext(os.path.basename(source_folder))
         target_name, target_extension = os.path.splitext(os.path.basename(target_path))
         if os.path.isdir(output_path):
             return os.path.join(output_path, source_name + '-' + target_name + target_extension)

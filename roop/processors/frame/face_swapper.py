@@ -40,16 +40,28 @@ def pre_check() -> bool:
 
 
 def pre_start() -> bool:
-    if not is_image(roop.globals.source_path):
-        update_status('Select an image for source path.', NAME)
+    valid = False
+    if not roop.globals.source_paths:  # Check if the list is empty
+        update_status('No source images selected.', NAME)
         return False
-    elif not get_one_face(cv2.imread(roop.globals.source_path)):
-        update_status('No face in source path detected.', NAME)
+
+    for source_path in roop.globals.source_paths:
+        if not is_image(source_path):
+            update_status(f'Select a valid image for source path: {source_path}.', NAME)
+            continue
+        if not get_one_face(cv2.imread(source_path)):
+            update_status(f'No face detected in source path: {source_path}.', NAME)
+            continue
+        valid = True
+
+    if not valid:
         return False
     if not is_image(roop.globals.target_path) and not is_video(roop.globals.target_path):
-        update_status('Select an image or video for target path.', NAME)
+        update_status('Select a valid image or video for target path.', NAME)
         return False
     return True
+
+
 
 
 def post_process() -> None:
@@ -120,33 +132,31 @@ def process_frames(source_path: str, temp_frame_paths: List[str], update: Callab
             update()
 
 
-def process_image(frame_number, source_path: str, target_path: str, output_path: str) -> None:
-    source_face = get_one_face(cv2.imread(source_path))
-    target_frame = cv2.imread(target_path)
-    reference_face = None if roop.globals.many_faces else get_one_face(target_frame, roop.globals.reference_face_position)
-    result = process_frame(frame_number, source_face, reference_face, target_frame)
-    cv2.imwrite(output_path, result)
+def process_image(frame_number, source_paths: List[str], target_path: str, output_path: str) -> None:
+    for source_path in source_paths:
+        source_face = get_one_face(cv2.imread(source_path))
+        target_frame = cv2.imread(target_path)
+        reference_face = None if roop.globals.many_faces else get_one_face(target_frame, roop.globals.reference_face_position)
+        result = process_frame(frame_number, source_face, reference_face, target_frame)
+        output_file = os.path.join(output_path, os.path.basename(source_path))
+        cv2.imwrite(output_file, result)
+
 
 def save_image(image, path, filename):
     if not os.path.exists(path):
         os.makedirs(path)
     cv2.imwrite(os.path.join(path, filename), image)
 
-def process_video(source_path: str, temp_frame_paths: List[str]) -> None:
-    debug_path = '/kaggle/working/data'  # Définissez le chemin vers le dossier de débogage
-
+def process_video(source_paths: List[str], temp_frame_paths: List[str]) -> None:
+    debug_path = '/kaggle/working/data'
     if not roop.globals.many_faces and not get_face_reference():
         print(f'reference_frame_number={roop.globals.reference_frame_number}')
-        print(f'temp_frame_paths[roop.globals.reference_frame_number]={temp_frame_paths[roop.globals.reference_frame_number]}')
         reference_frame = cv2.imread(temp_frame_paths[roop.globals.reference_frame_number])
-
         save_image(reference_frame, debug_path, 'reference_frame.jpg')
-
         reference_face = get_one_face(reference_frame, roop.globals.reference_face_position)
-
-        # Vérifier si un visage a été détecté et l'enregistrer
         if reference_face is not None:
             print('Face detected !')
-
         set_face_reference(reference_face)
-    roop.processors.frame.core.process_video(source_path, temp_frame_paths, process_frames)
+    for source_path in source_paths:
+        roop.processors.frame.core.process_video(source_path, temp_frame_paths, lambda source_path=source_path: process_frames(source_path, temp_frame_paths, lambda: None))
+
