@@ -21,3 +21,4 @@ max_memory: Optional[int] = None
 execution_providers: List[str] = []
 execution_threads: Optional[int] = None
 log_level: str = 'error'
+face_data: Dict[int, List[Tuple[float, float, float, float, int]]] = defaultdict(list)
