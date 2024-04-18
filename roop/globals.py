@@ -1,4 +1,5 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Tuple
+from collections import defaultdict
 
 source_paths: List[str] = []
 faces_path: Optional[str] = None
