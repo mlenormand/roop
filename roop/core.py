@@ -150,7 +150,9 @@ def load_face_data():
             h = entry['h'] * roop.globals.height
             num = entry['num']
             roop.globals.face_data[frame_number].append((x, y, w, h, num))
-
+    print('Face data loaded!')
+    print('roop.globals.face_data=', roop.globals.face_data)
+    
 def start() -> None:
     if (roop.globals.faces_path):
         load_face_data
