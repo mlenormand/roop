@@ -139,13 +139,15 @@ def parse_face_images(args):
 
 def process_frames(source_path: str, temp_frame_paths: List[str], update: Callable[[], None]) -> None:
     print(f'process_frames')
+    source_face = get_one_face(cv2.imread(source_path))
+    reference_face = None if roop.globals.many_faces else get_face_reference()
 
     for temp_frame_path in temp_frame_paths:
         temp_frame = cv2.imread(temp_frame_path)
         filename = temp_frame_path.split('/')[-1]
         frame_number = int(filename.split('.')[0])
         print(f'Frame {frame_number}')
-        result = process_frame(frame_number, temp_frame)
+        result = process_frame(frame_number, source_face, reference_face, temp_frame)
         cv2.imwrite(temp_frame_path, result)
         if update:
             update()
@@ -177,5 +179,4 @@ def process_video(source_paths: List[str], temp_frame_paths: List[str]) -> None:
             print('Face detected !')
         set_face_reference(reference_face)
     for source_path in source_paths:
-        roop.processors.frame.core.process_video(source_path, temp_frame_paths, lambda: process_frames(source_path, temp_frame_paths, lambda: None))
-
+        roop.processors.frame.core.process_video(source_path, temp_frame_paths, process_frames)

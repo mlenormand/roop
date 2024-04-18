@@ -78,7 +78,6 @@ def process_video(source_path: str, frame_paths: list[str], process_frames: Call
     with tqdm(total=total, desc='Processing', unit='frame', dynamic_ncols=True, bar_format=progress_bar_format) as progress:
         multi_process_frame(source_path, frame_paths, process_frames, lambda: update_progress(progress))
 
-
 def update_progress(progress: Any = None) -> None:
     process = psutil.Process(os.getpid())
     memory_usage = process.memory_info().rss / 1024 / 1024 / 1024
