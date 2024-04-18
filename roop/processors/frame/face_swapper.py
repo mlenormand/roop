@@ -91,7 +91,7 @@ def process_frame(frame_number, source_faces: List[Face], reference_face: Face, 
     else:
         frame_width = temp_frame.shape[1]
         frame_height = temp_frame.shape[0]
-        current_frame_positions = roop.globals.face_positions.get(f'frame_{frame_number}', [])
+        current_frame_positions = roop.globals.face_data.get(f'frame_{frame_number}', [])
         print(f'current_frame_positions={current_frame_positions}')
         many_faces = get_many_faces(temp_frame)
         for face in many_faces:
