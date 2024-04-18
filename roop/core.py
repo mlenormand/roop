@@ -194,7 +194,7 @@ def start() -> None:
     if temp_frame_paths:
         for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
             update_status('Progressing...', frame_processor.NAME)
-            frame_processor.process_video(roop.globals.source_path, temp_frame_paths)
+            frame_processor.process_video(roop.globals.source_paths, temp_frame_paths)
             frame_processor.post_process()
     else:
         update_status('Frames not found...')

@@ -85,7 +85,7 @@ def process_frame(frame_number, source_face: Face, reference_face: Face, temp_fr
     return temp_frame
 
 
-def process_frames(source_path: str, temp_frame_paths: List[str], update: Callable[[], None]) -> None:
+def process_frames(source_paths: list[str], temp_frame_paths: List[str], update: Callable[[], None]) -> None:
     frame_number=0
     for temp_frame_path in temp_frame_paths:
         temp_frame = cv2.imread(temp_frame_path)
@@ -96,11 +96,11 @@ def process_frames(source_path: str, temp_frame_paths: List[str], update: Callab
         frame_number=frame_number+1
 
 
-def process_image(frame_number, source_path: str, target_path: str, output_path: str) -> None:
+def process_image(frame_number, source_paths: list[str], target_path: str, output_path: str) -> None:
     target_frame = cv2.imread(target_path)
     result = process_frame(frame_number, None, None, target_frame)
     cv2.imwrite(output_path, result)
 
 
-def process_video(source_path: str, temp_frame_paths: List[str]) -> None:
+def process_video(source_paths: list[str], temp_frame_paths: List[str]) -> None:
     roop.processors.frame.core.process_video(None, temp_frame_paths, process_frames)

@@ -77,41 +77,44 @@ def is_point_in_bbox(point, bbox):
     x1, y1, x2, y2 = bbox
     return x1 <= x <= x2 and y1 <= y <= y2
 
-def process_frame(frame_number, temp_frame: Frame) -> Frame:
+def process_frame(frame_number, source_faces: List[Face], reference_face: Face, temp_frame: Frame) -> Frame:
     print('process_frame')
 
-    frame_width = temp_frame.shape[1]
-    frame_height = temp_frame.shape[0]
-    current_frame_positions = roop.globals.face_data[frame_number]
-    print(f'current_frame_positions={current_frame_positions}')
+    if roop.globals.many_faces:
+        many_faces = get_many_faces(temp_frame)
+        for face in many_faces:
+            box = face.bbox.astype(int)
+            print(f'Frame {frame_number}: Face detected at ({box[0]}, {box[1]}), ({box[2]}, {box[3]})')
+        if many_faces:
+            for target_face in many_faces:
+                temp_frame = swap_face(source_faces[0], target_face, temp_frame)
+    else:
+        frame_width = temp_frame.shape[1]
+        frame_height = temp_frame.shape[0]
+        current_frame_positions = roop.globals.face_positions.get(f'frame_{frame_number}', [])
+        print(f'current_frame_positions={current_frame_positions}')
+        many_faces = get_many_faces(temp_frame)
+        for face in many_faces:
+            face_box = face.bbox.astype(int)
+            print(f'face_box={face_box}')
+            for position in current_frame_positions:
+                rect_x = int(position['x'] * frame_width if 0 <= position['x'] <= 1 else position['x'])
+                rect_y = int(position['y'] * frame_height if 0 <= position['y'] <= 1 else position['y'])
+                rect_w = int(position['w'] * frame_width)
+                rect_h = int(position['h'] * frame_height)
+                rect_box = [rect_x, rect_y, rect_x + rect_w, rect_y + rect_h]
 
-    many_faces = get_many_faces(temp_frame)
-    for face in many_faces:
-        face_bbox = [face.bbox[0], face.bbox[1], face.bbox[0] + face.bbox[2], face.bbox[1] + face.bbox[3]]
-        print(f'Frame {frame_number}: Face detected at {face_bbox}')
+                print(f'Checking position={position} with rectangle={rect_box}')
 
-        for position in current_frame_positions:
-            rect_x = int(position['x'] * frame_width if 0 <= position['x'] <= 1 else position['x'])
-            rect_y = int(position['y'] * frame_height if 0 <= position['y'] <= 1 else position['y'])
-            rect_w = int(position['w'] * frame_width)
-            rect_h = int(position['h'] * frame_height)
-            rect_bbox = [rect_x, rect_y, rect_x + rect_w, rect_y + rect_h]
-
-            print(f'Checking intersection with rectangle: {rect_bbox}')
-            if rectangles_intersect(face_bbox, rect_bbox):
-                num = position['num']
-                face_image_path = roop.globals.face_paths[num - 1] if num <= len(roop.globals.face_paths) else None
-                if face_image_path:  # Vérifie si le chemin du visage est disponible
-                    print(f'Swapping face with image #{num} in frame {frame_number}')
-                    replacement_face = cv2.imread(face_image_path)
-                    if replacement_face is not None:
-                        temp_frame = swap_face(replacement_face, face, temp_frame)
+                if rectangles_intersect(face_box, rect_box):
+                    num = position['num']
+                    if num > 0 and num <= len(source_faces):
+                        selected_source_face = source_faces[num - 1]  # num is 1-based index
+                        print(f'Swapping face in frame {frame_number} with source face #{num}')
+                        temp_frame = swap_face(selected_source_face, face, temp_frame)
                     else:
-                        print(f"Error loading face image for image #{num}, skipping face swap.")
-                else:
-                    print(f'Face image #{num} not provided, skipping face swap.')
-                break  # Suppose un seul remplacement par visage détecté
-
+                        print(f'No valid source face for number {num}, skipping.')
+                    break  # Assume only one swap per detected face
     return temp_frame
 
 
@@ -137,9 +140,21 @@ def parse_face_images(args):
     return face_images
 
 
-def process_frames(source_path: str, temp_frame_paths: List[str], update: Callable[[], None]) -> None:
+def process_frames(source_paths: list[str], temp_frame_paths: List[str], update: Callable[[], None]) -> None:
     print(f'process_frames')
-    source_face = get_one_face(cv2.imread(source_path))
+
+    source_faces = []
+    for source_path in source_paths:
+        image = cv2.imread(source_path)
+        if image is None:
+            print(f"Erreur: Impossible de lire l'image à partir du chemin {source_path}.")
+            continue
+        face = get_one_face(image)
+        if face is not None:
+            source_faces.append(face)
+        else:
+            print(f"Aucun visage détecté dans {source_path}.")
+
     reference_face = None if roop.globals.many_faces else get_face_reference()
 
     for temp_frame_path in temp_frame_paths:
@@ -147,20 +162,29 @@ def process_frames(source_path: str, temp_frame_paths: List[str], update: Callab
         filename = temp_frame_path.split('/')[-1]
         frame_number = int(filename.split('.')[0])
         print(f'Frame {frame_number}')
-        result = process_frame(frame_number, source_face, reference_face, temp_frame)
+        result = process_frame(frame_number, source_faces, reference_face, temp_frame)
         cv2.imwrite(temp_frame_path, result)
         if update:
             update()
 
 
-def process_image(frame_number, source_paths: List[str], target_path: str, output_path: str) -> None:
+def process_image(frame_number, source_paths: list[str], target_path: str, output_path: str) -> None:
+    source_faces = []
     for source_path in source_paths:
-        source_face = get_one_face(cv2.imread(source_path))
-        target_frame = cv2.imread(target_path)
-        reference_face = None if roop.globals.many_faces else get_one_face(target_frame, roop.globals.reference_face_position)
-        result = process_frame(frame_number, source_face, reference_face, target_frame)
-        output_file = os.path.join(output_path, os.path.basename(source_path))
-        cv2.imwrite(output_file, result)
+        image = cv2.imread(source_path)
+        if image is None:
+            print(f"Erreur: Impossible de lire l'image à partir du chemin {source_path}.")
+            continue
+        face = get_one_face(image)
+        if face is not None:
+            source_faces.append(face)
+        else:
+            print(f"Aucun visage détecté dans {source_path}.")
+            
+    target_frame = cv2.imread(target_path)
+    reference_face = None if roop.globals.many_faces else get_one_face(target_frame, roop.globals.reference_face_position)
+    result = process_frame(frame_number, source_faces, reference_face, target_frame)
+    cv2.imwrite(output_path, result)
 
 
 def save_image(image, path, filename):
@@ -178,5 +202,4 @@ def process_video(source_paths: List[str], temp_frame_paths: List[str]) -> None:
         if reference_face is not None:
             print('Face detected !')
         set_face_reference(reference_face)
-    for source_path in source_paths:
-        roop.processors.frame.core.process_video(source_path, temp_frame_paths, process_frames)
+    roop.processors.frame.core.process_video(source_paths, temp_frame_paths, process_frames)
