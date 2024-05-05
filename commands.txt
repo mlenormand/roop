@@ -1,0 +1,78 @@
+ffmpeg -i avengers-0336-0348.avi -c:v libx264 -preset fast -crf 22 -c:a aac -b:a 192k avengers-0336-0348-x264.mp4
+ffmpeg -i avengers-1150-1210.avi -c:v libx264 -preset fast -crf 22 -c:a aac -b:a 192k avengers-1150-1210-x264.mp4
+ffmpeg -i avengers-2017-2210.avi -c:v libx264 -preset fast -crf 22 -c:a aac -b:a 192k avengers-2017-2210-x264.mp4
+ffmpeg -i avengers-2324-2645.avi -c:v libx264 -preset fast -crf 22 -c:a aac -b:a 192k avengers-2324-2645-x264.mp4
+
+python3.10 run.py --target avengers-0336-0348-x264.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles erwan.png,sandra.png,mickaelle.png,jeremy.png,stephen.png,jerome.png,erwan.png,celine.png,marco.png  --faces faces-avengers-0336-0348.yaml -o avengers-0336-0348-replaced-x264.mp4 --execution-provider cpu --frame-processor face_swapper  --keep-fps
+python3.10 run.py --target avengers-1150-1210-x264.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles erwan.png,sandra.png,mickaelle.png,jeremy.png,stephen.png,jerome.png,erwan.png,celine.png,marco.png  --faces faces-avengers-1150-1210.yaml -o avengers-1150-1210-replaced-x264.mp4 --execution-provider cpu --frame-processor face_swapper  --keep-fps
+python3.10 run.py --target avengers-2017-2210-x264.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles erwan.png,sandra.png,mickaelle.png,jeremy.png,stephen.png,jerome.png,erwan.png,celine.png,marco.png  --faces faces-avengers-2017-2210.yaml -o avengers-2017-2210-replaced-x264.mp4 --execution-provider cpu --frame-processor face_swapper  --keep-fps
+python3.10 run.py --target avengers-2324-2645-x264.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles erwan.png,sandra.png,mickaelle.png,jeremy.png,stephen.png,jerome.png,erwan.png,celine.png,marco.png  --faces faces-avengers-2324-2645.yaml -o avengers-2324-2645-replaced-x264.mp4 --execution-provider cpu --frame-processor face_swapper  --keep-fps
+
+python3.10 run.py --target notretoutpetitmariage-original.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles xavier.png,julia.png,ludo.png  --faces faces-notretoutpetitmariage.yaml -o notretoutpetitmariage-replaced.mp4 --execution-provider cpu --frame-processor face_swapper  --keep-fps
+
+python3.10 run.py --target avengers-3046-3202-x264.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles erwan.png,sandra.png,mickaelle.png,jeremy.png,stephen.png,jerome.png,erwan.png,celine.png,marco.png --faces faces-avengers-3046-3202.yaml -o avengers-3046-3202-replaced-x264.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+python3.10 run.py --target avengers-3343-3500-x264.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles erwan.png,sandra.png,mickaelle.png,jeremy.png,stephen.png,jerome.png,erwan.png,celine.png,marco.png --faces faces-avengers-3343-3500.yaml -o avengers-3343-3500-replaced-x264.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+python3.10 run.py --target avengers-3643-3744-x264.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles erwan.png,sandra.png,mickaelle.png,jeremy.png,stephen.png,jerome.png,erwan.png,celine.png,marco.png --faces faces-avengers-3643-3744.yaml -o avengers-3643-3744-replaced-x264.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+python3.10 run.py --target avengers-4946-5350-x264.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles erwan.png,sandra.png,mickaelle.png,jeremy.png,stephen.png,jerome.png,erwan.png,celine.png,marco.png --faces faces-avengers-4946-5350.yaml -o avengers-4946-5350-replaced-x264.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+python3.10 run.py --target avengers-5405-5814-x264.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles erwan.png,sandra.png,mickaelle.png,jeremy.png,stephen.png,jerome.png,erwan.png,celine.png,marco.png --faces faces-avengers-5405-5814.yaml -o avengers-5405-5814-replaced-x264.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+python3.10 run.py --target avengers-14230-14430-x264.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles erwan.png,sandra.png,mickaelle.png,jeremy.png,stephen.png,jerome.png,erwan.png,celine.png,marco.png --faces faces-avengers-14230-14430.yaml -o avengers-14230-14430-replaced-x264.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+python3.10 run.py --target avengers-14730-14752-x264.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles erwan.png,sandra.png,mickaelle.png,jeremy.png,stephen.png,jerome.png,erwan.png,celine.png,marco.png --faces faces-avengers-14730-14752.yaml -o avengers-14730-14752-replaced-x264.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+python3.10 run.py --target avengers-14759-14842-x264.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles erwan.png,sandra.png,mickaelle.png,jeremy.png,stephen.png,jerome.png,erwan.png,celine.png,marco.png --faces faces-avengers-14759-14842.yaml -o avengers-14759-14842-replaced-x264.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+python3.10 run.py --target avengers-20143-20224-x264.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles erwan.png,sandra.png,mickaelle.png,jeremy.png,stephen.png,jerome.png,erwan.png,celine.png,marco.png --faces faces-avengers-20143-20224.yaml -o avengers-20143-20224-replaced-x264.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+/Users/mickael/Projets/perso/deepfakevideos/gardiensgalaxie/faces-gardiens-ba.yaml /Users/mickael/Projets/perso/deepfakevideos/gardiensgalaxie/gardiensgalaxie2-ba.mp4
+
+python3.10 run.py --target gardiensgalaxie2-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles ronan.png,julien.png,sego.png,emilie.png,jimmy.png,marion.png,guillaume.png --faces faces-gardiens-ba.yaml -o gardiensgalaxie2-ba-replaced2.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target gardiensgalaxie2-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles ronan.png,marco.png,sego.png,emilie.png,jimmy.png,marion.png,guillaume.png --faces faces-gardiens-ba.yaml -o gardiensgalaxie2-ba-replaced3.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+ffmpeg -i avengers-2324-2645.avi -c:v libx264 -preset fast -crf 22 -c:a aac -b:a 192k avengers-2324-2645-x264.mp4
+
+python3.10 run.py --target gardiens-film-0000-2118.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles ronan.png,doesnotexist.png,sego.png,emilie.png,jimmy.png,marion.png,guillaume.png,julien.png --faces faces-gardiens-0000-2118.yaml -o gardiens-film-0000-2118-replaced.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+python3.10 run.py --target gardiens-film-2118-4004.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles ronan.png,doesnotexist.png,sego.png,emilie.png,jimmy.png,marion.png,guillaume.png,julien.png --faces faces-gardiens-2118-4004.yaml -o gardiens-film-2118-4004-replaced.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+
+ffmpeg -i gardiens2-film-x264.mp4 -ss 00:03:10 -to 00:03:30 -c:v libx264 -an gardiens2-film-0310-0330.mp4
+ffmpeg -i gardiens2-film-x264.mp4 -ss 00:08:00 -to 00:08:20 -c:v libx264 -an gardiens2-film-0800-0820.mp4
+ffmpeg -i gardiens2-film-x264.mp4 -ss 00:10:10 -to 00:12:15 -c:v libx264 -an gardiens2-film-1010-1215.mp4
+ffmpeg -i gardiens2-film-x264.mp4 -ss 00:13:48 -to 00:14:40 -c:v libx264 -an gardiens2-film-1348-1440.mp4
+ffmpeg -i gardiens2-film-x264.mp4 -ss 00:16:29 -to 00:17:00 -c:v libx264 -an gardiens2-film-1629-1700.mp4
+ffmpeg -i gardiens2-film-x264.mp4 -ss 00:23:30 -to 00:24:30 -c:v libx264 -an gardiens2-film-2330-2430.mp4
+ffmpeg -i gardiens2-film-x264.mp4 -ss 00:24:50 -to 00:25:25 -c:v libx264 -an gardiens2-film-2450-2525.mp4
+ffmpeg -i gardiens2-film-x264.mp4 -ss 00:29:09 -to 00:32:30 -c:v libx264 -an gardiens2-film-2909-3230.mp4
+ffmpeg -i gardiens2-film-x264.mp4 -ss 00:33:58 -to 00:36:50 -c:v libx264 -an gardiens2-film-3358-3650.mp4
+ffmpeg -i gardiens2-film-x264.mp4 -ss 00:44:20 -to 00:46:00 -c:v libx264 -an gardiens2-film-4420-4600.mp4
+
+python3.10 run.py --target gardiens2-film-0310-0330.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles ronan.png,doesnotexist.png,sego.png,emilie.png,jimmy.png,marion.png,guillaume.png,julien.png,pauline.png --faces faces-gardiens2-0310-0330.yaml -o gardiens2-film-0310-0330-replaced.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target gardiensgalaxie2-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles ronan.png,doesnotexist.png,sego.png,emilie.png,jimmy.png,marion.png,guillaume.png,julien.png,pauline.png --faces faces-gardiens-ba.yaml -o gardiensgalaxie2-ba-replaced4.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target oss117-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles johann.png,laura.png,thomas-sarah.png,sarah.png,julia.png,mylene.png,ludo.png,virginie.png --faces faces-oss117-ba.yaml -o oss117-ba-replaced.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target fullmonty-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles louis.png,marco.png,denis.png --faces faces-fullmontyba.yaml -o fullmonty-ba-replaced1.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+python3.10 run.py --target fullmonty-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles denis.png,marco.png,louis.png --faces faces-fullmontyba.yaml -o fullmonty-ba-replaced2.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+
+python3.10 run.py --target bohemian-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles denis.png,marco.png,louis.png,marie-claire.png --faces faces-bohemianba.yaml -o bohemian-ba-replaced1.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target bohemian-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles kevin.png,mickaella.png,jordi.png,virginie.png --faces faces-bohemianba.yaml -o bohemian-ba-replaced1.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target stars80-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles marco.png,denis.png,louis.png,xavier.png,yannick.png,ghyslaine.png,mylene.png,ludo.png,nelly.png --faces faces-stars80ba.yaml -o stars80-ba-replaced1.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target feuxamourba2.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles ludo.png,ariane.png,xavier.png,donotreplace.png,ludo.png,ariane.png,marcotonton.png,mylene.png,julia.png  --faces faces-feuxamourba2.yaml -o feuxamourba2-replaced1.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+
+python3.10 run.py --target fullmonty-11857-12100.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles denis.png,marco.png,3,4,5,6,7,8,nelly.png  --faces faces-fullmonty-11857-12100.yaml -o fullmonty-11857-12100-replaced1.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+
+python3.10 run.py --target feuxamour3.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles sarah.png,ludo.png,julia.png,xavier.png,maryse.png,marcotonton.png,mylene.png,thomas-sarah.png,ariane.png  --faces faces-feuxamour3.yaml -o feuxamour3-replaced1.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target feuxamour3.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles annick.png,ludo.png,julia.png,xavier.png,maryse.png,marcotonton.png,mylene.png,louis.png,ariane.png  --faces faces-feuxamour3.yaml -o feuxamour3-replaced2.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target feuxamour3.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles maryse.png,marcotonton.png,ariane.png,xavier.png,annick.png,ludo.png,mylene.png,louis.png,julia.png  --faces faces-feuxamour3.yaml -o feuxamour3-replaced2.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target feuxamour3.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles maryse.png,marcotonton.png,ariane.png,xavier.png,annick.png,ludo.png,mylene.png,louis.png,julia.png  --faces faces-feuxamour3.yaml -o feuxamour3-replaced3.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target bohemian-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles kevin.png,mickaella.png,jordi.png,virginie.png --faces faces-bohemianba.yaml -o bohemian-ba-replaced2.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target desperate-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles laura.png,sarah.png,virginie.png,sandrine.png,alicia.png --faces faces-desperateba.yaml -o desperate-ba-replaced1.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps

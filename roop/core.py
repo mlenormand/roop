@@ -23,6 +23,9 @@ from roop.predictor import predict_image, predict_video
 from roop.processors.frame.core import get_frame_processors_modules
 from roop.utilities import has_image_extension, is_image, is_video, detect_fps, create_video, extract_frames, get_temp_frame_paths, restore_audio, create_temp, move_temp, clean_temp, normalize_output_path
 import yaml
+import face_recognition
+import cv2
+import re
 
 warnings.filterwarnings('ignore', category=FutureWarning, module='insightface')
 warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
@@ -51,13 +54,14 @@ def parse_args() -> None:
     program.add_argument('--execution-provider', help='available execution provider (choices: cpu, ...)', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
     program.add_argument('-v', '--version', action='version', version=f'{roop.metadata.name} {roop.metadata.version}')
+    program.add_argument('--auto', help='Activate automatic face recognition and replacement', action='store_true')
 
     args = program.parse_args()
 
     roop.globals.target_path = args.target_path
     roop.globals.faces_path = args.faces_path
     roop.globals.output_path = normalize_output_path(args.source_folder, roop.globals.target_path, args.output_path)
-    roop.globals.headless = args.source_folder is not None and roop.globals.target_path is not None and roop.globals.output_path is not None
+    roop.globals.headless = roop.globals.output_path is not None
     roop.globals.frame_processors = args.frame_processor
     roop.globals.keep_fps = args.keep_fps
     roop.globals.keep_frames = args.keep_frames
@@ -73,7 +77,8 @@ def parse_args() -> None:
     roop.globals.max_memory = args.max_memory
     roop.globals.execution_providers = decode_execution_providers(args.execution_provider)
     roop.globals.execution_threads = args.execution_threads
-
+    roop.globals.auto = args.auto
+    
     # Handle source paths
     if args.source_folder and args.source_files:
         file_names = args.source_files.split(',')
@@ -137,15 +142,53 @@ def update_status(message: str, scope: str = 'ROOP.CORE') -> None:
     if not roop.globals.headless:
         ui.update_status(message)
 
+def extract_known_faces(video_path, face_positions):
+    """Extrait les visages connus de la vidéo en utilisant les positions spécifiées dans face_positions."""
+    capture = cv2.VideoCapture(video_path)
+    known_faces = {}
+    known_face_encodings = {}
+
+    for frame_key, positions in face_positions.items():
+        frame_number = int(re.search(r'\d+', frame_key).group())
+        capture.set(cv2.CAP_PROP_POS_FRAMES, int(frame_number))
+        success, frame = capture.read()
+        if not success:
+            continue
+
+        for position in positions:
+            top = int(position['y'] * frame.shape[0])
+            right = int((position['x'] + position['w']) * frame.shape[1])
+            bottom = int((position['y'] + position['h']) * frame.shape[0])
+            left = int(position['x'] * frame.shape[1])
+            face_image = frame[top:bottom, left:right]
+            face_encoding = face_recognition.face_encodings(face_image)
+
+            if face_encoding:
+                known_faces[position['num']] = face_image
+                known_face_encodings[position['num']] = face_encoding[0]
+
+    capture.release()
+    return known_faces, known_face_encodings
+
 def load_face_data():
     with open(roop.globals.faces_path, 'r') as file:
         roop.globals.face_data = yaml.safe_load(file)
     print('Face data loaded!')
     print('roop.globals.face_data=', roop.globals.face_data)
     
+def load_known_faces():
+    with open(roop.globals.faces_path, 'r') as file:
+        face_positions = yaml.safe_load(file)
+    video_path = roop.globals.target_path
+
+    roop.globals.known_faces, roop.globals.known_face_encodings = extract_known_faces(video_path, face_positions)
+    print("Known faces loaded!")
+
 def start() -> None:
     if (roop.globals.faces_path):
         load_face_data()
+        if roop.globals.auto:
+            load_known_faces()
 
     for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
         if not frame_processor.pre_start():

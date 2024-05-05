@@ -2,3 +2,9 @@
 models
 temp
 __pycache__
+venv
+*.mp4
+*.avi
+*.png
+faces*.yaml
+*.pth

@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional, Dict, Tuple, Any
 from collections import defaultdict
 
 source_paths: List[str] = []
@@ -23,3 +23,6 @@ execution_providers: List[str] = []
 execution_threads: Optional[int] = None
 log_level: str = 'error'
 face_data: None
+known_faces: Dict[int, Any] = {}  # Stocke les images des visages connus par numéro
+known_face_encodings: Dict[int, Any] = {}  # Stocke les encodages des visages connus par numéro
+auto: bool = False  # Indique si le mode auto est activé

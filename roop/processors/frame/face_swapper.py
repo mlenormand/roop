@@ -110,8 +110,9 @@ def process_frame(frame_number, source_faces: List[Face], reference_face: Face, 
                     num = position['num']
                     if num > 0 and num <= len(source_faces):
                         selected_source_face = source_faces[num - 1]  # num is 1-based index
-                        print(f'Swapping face in frame {frame_number} with source face #{num}')
-                        temp_frame = swap_face(selected_source_face, face, temp_frame)
+                        if selected_source_face is not None:
+                            print(f'Swapping face in frame {frame_number} with source face #{num}')
+                            temp_frame = swap_face(selected_source_face, face, temp_frame)
                     else:
                         print(f'No valid source face for number {num}, skipping.')
                     break  # Assume only one swap per detected face
@@ -148,11 +149,13 @@ def process_frames(source_paths: list[str], temp_frame_paths: List[str], update:
         image = cv2.imread(source_path)
         if image is None:
             print(f"Erreur: Impossible de lire l'image à partir du chemin {source_path}.")
+            source_faces.append(None)
             continue
         face = get_one_face(image)
         if face is not None:
             source_faces.append(face)
         else:
+            source_faces.append(None)
             print(f"Aucun visage détecté dans {source_path}.")
 
     reference_face = None if roop.globals.many_faces else get_face_reference()
@@ -193,7 +196,7 @@ def save_image(image, path, filename):
     cv2.imwrite(os.path.join(path, filename), image)
 
 def process_video(source_paths: List[str], temp_frame_paths: List[str]) -> None:
-    debug_path = '/kaggle/working/data'
+    debug_path = '.'
     if not roop.globals.many_faces and not get_face_reference():
         print(f'reference_frame_number={roop.globals.reference_frame_number}')
         reference_frame = cv2.imread(temp_frame_paths[roop.globals.reference_frame_number])
