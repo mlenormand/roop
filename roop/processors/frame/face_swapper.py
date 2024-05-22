@@ -11,6 +11,7 @@ from roop.face_reference import get_face_reference, set_face_reference, clear_fa
 from roop.typing import Face, Frame
 from roop.utilities import conditional_download, resolve_relative_path, is_image, is_video
 import os
+import face_recognition
 
 FACE_SWAPPER = None
 THREAD_LOCK = threading.Lock()
@@ -80,44 +81,72 @@ def is_point_in_bbox(point, bbox):
 def process_frame(frame_number, source_faces: List[Face], reference_face: Face, temp_frame: Frame) -> Frame:
     print('process_frame')
 
-    if roop.globals.many_faces:
-        many_faces = get_many_faces(temp_frame)
-        for face in many_faces:
-            box = face.bbox.astype(int)
-            print(f'Frame {frame_number}: Face detected at ({box[0]}, {box[1]}), ({box[2]}, {box[3]})')
-        if many_faces:
-            for target_face in many_faces:
-                temp_frame = swap_face(source_faces[0], target_face, temp_frame)
-    else:
-        frame_width = temp_frame.shape[1]
-        frame_height = temp_frame.shape[0]
-        current_frame_positions = roop.globals.face_data.get(f'frame_{frame_number}', [])
-        print(f'current_frame_positions={current_frame_positions}')
-        many_faces = get_many_faces(temp_frame)
-        for face in many_faces:
-            face_box = face.bbox.astype(int)
-            print(f'face_box={face_box}')
-            for position in current_frame_positions:
-                rect_x = int(position['x'] * frame_width if 0 <= position['x'] <= 1 else position['x'])
-                rect_y = int(position['y'] * frame_height if 0 <= position['y'] <= 1 else position['y'])
-                rect_w = int(position['w'] * frame_width)
-                rect_h = int(position['h'] * frame_height)
-                rect_box = [rect_x, rect_y, rect_x + rect_w, rect_y + rect_h]
+    detected_faces = get_many_faces(temp_frame)
+    frame_width = temp_frame.shape[1]
+    frame_height = temp_frame.shape[0]
 
-                print(f'Checking position={position} with rectangle={rect_box}')
+    if roop.globals.auto:
+        # Mode auto : Utiliser les visages connus pour identifier et remplacer les visages
+        known_face_encodings = roop.globals.known_face_encodings
+        for detected_face in detected_faces:
+             # Extraire l'image du visage à partir de la boîte englobante dans temp_frame
+            x1, y1, x2, y2 = detected_face.bbox.astype(int)
+            face_image = temp_frame[y1:y2, x1:x2]
+            if face_image.size == 0:
+                print("Detected face image is empty. Skipping...")
+                continue
+            rgb_image = cv2.cvtColor(face_image, cv2.COLOR_BGR2RGB)
+            face_encodings = face_recognition.face_encodings(rgb_image)
 
-                if rectangles_intersect(face_box, rect_box):
-                    num = position['num']
+            if face_encodings:
+                detected_face_encoding = face_encodings[0]
+                # Comparaison avec les visages connus
+                matches = face_recognition.compare_faces(list(known_face_encodings.values()), detected_face_encoding)
+                best_match_index = matches.index(True) if True in matches else -1
+
+                if best_match_index != -1:
+                    num = list(known_face_encodings.keys())[best_match_index]
                     if num > 0 and num <= len(source_faces):
-                        selected_source_face = source_faces[num - 1]  # num is 1-based index
-                        if selected_source_face is not None:
-                            print(f'Swapping face in frame {frame_number} with source face #{num}')
-                            temp_frame = swap_face(selected_source_face, face, temp_frame)
+                        source_face = source_faces[num - 1]  # num is 1-based index
+                        print(f'Auto swapping with source face #{num}')
+                        temp_frame = swap_face(source_face, detected_face, temp_frame)
                     else:
                         print(f'No valid source face for number {num}, skipping.')
-                    break  # Assume only one swap per detected face
-    return temp_frame
+            else:
+                print("No face encodings generated for detected face.")
+    else:
+        if roop.globals.many_faces:
+            for face in detected_faces:
+                box = face.bbox.astype(int)
+                print(f'Frame {frame_number}: Face detected at ({box[0]}, {box[1]}), ({box[2]}, {box[3]})')
+                temp_frame = swap_face(source_faces[0], face, temp_frame)
+        else:
 
+            current_frame_positions = roop.globals.face_data.get(f'frame_{frame_number}', [])
+            print(f'current_frame_positions={current_frame_positions}')
+            for face in detected_faces:
+                face_box = face.bbox.astype(int)
+                print(f'face_box={face_box}')
+                for position in current_frame_positions:
+                    rect_x = int(position['x'] * frame_width if 0 <= position['x'] <= 1 else position['x'])
+                    rect_y = int(position['y'] * frame_height if 0 <= position['y'] <= 1 else position['y'])
+                    rect_w = int(position['w'] * frame_width)
+                    rect_h = int(position['h'] * frame_height)
+                    rect_box = [rect_x, rect_y, rect_x + rect_w, rect_y + rect_h]
+
+                    print(f'Checking position={position} with rectangle={rect_box}')
+
+                    if rectangles_intersect(face_box, rect_box):
+                        num = position['num']
+                        if num > 0 and num <= len(source_faces):
+                            selected_source_face = source_faces[num - 1]  # num is 1-based index
+                            if selected_source_face is not None:
+                                print(f'Swapping face in frame {frame_number} with source face #{num}')
+                                temp_frame = swap_face(selected_source_face, face, temp_frame)
+                        else:
+                            print(f'No valid source face for number {num}, skipping.')
+                        break  # Assume only one swap per detected face
+    return temp_frame
 
 
 def rectangles_intersect(r1, r2):

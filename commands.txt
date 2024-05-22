@@ -76,3 +76,37 @@ python3.10 run.py --target feuxamour3.mp4 --output-video-quality 1 --sourcefolde
 python3.10 run.py --target bohemian-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles kevin.png,mickaella.png,jordi.png,virginie.png --faces faces-bohemianba.yaml -o bohemian-ba-replaced2.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
 
 python3.10 run.py --target desperate-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles laura.png,sarah.png,virginie.png,sandrine.png,alicia.png --faces faces-desperateba.yaml -o desperate-ba-replaced1.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target kidsunited.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles amalya.png,zoe.png,noahm.png,theo.png,izia.png,zoe.png,julia.png,laura.png,virginie.png --faces faces-kidsunited.yaml -o kidsunited-replaced1.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+ffmpeg -i kidsunited.mp4 -ss 00:00:05 -to 00:00:15 -c:v libx264 -an kidsunited-0005-0015.mp4
+
+python3.10 run.py --target kidsunited.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles amalya.png,zoe.png,noahm.png,theo.png,izia.png,laura.png,mickaelle.png,johann.png,julia.png,xavier.png,virginie.png --faces faces-kidsunited-auto3.yaml -o kidsunited-auto3-replaced1.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps --auto
+
+python3.10 run.py --target quialedroit.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles amalya.png,joy.png,noahm.png,theo.png,izia.png,zoe.png --faces faces-quialedroit.yaml -o quialedroit-replaced1.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target quialedroit_360p.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles amalya.png,izia.png,noahm.png,theo.png,donotreplace.png,zoe.png --faces faces-quialedroit.yaml -o quialedroit_360p-replaced1.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target quialedroit.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles amalya.png,izia.png,noahm.png,theo.png,donotreplace.png,zoe.png --faces faces-quialedroit.yaml -o quialedroit-replaced2.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target bohemian-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles kevin.png,mickaella.png,jordi.png,carole.png --faces faces-bohemianba-auto.yaml -o bohemian-ba-replaced2.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps --auto
+
+
+
+python3.10 run.py --target bohemian-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles kevin.png,mickaella.png,jordi.png,carole.png,doesnotexist.png,doesnotexist.png,amaury.png,tristan.png --faces faces-bohemianba.yaml -o bohemian-ba-replaced3.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target bohemian-010100-8min.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles kevin.png,mickaella.png,jordi.png,carole.png,doesnotexist.png,doesnotexist.png,amaury.png,tristan.png --faces faces-bohemian-010100-8min.yaml -o bohemian-010100-8min-replaced.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target bohemian-010630-8min.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles kevin.png,mickaella.png,jordi.png,carole.png,doesnotexist.png,doesnotexist.png,amaury.png,tristan.png --faces faces-bohemian-010630-8min.yaml -o bohemian-010630-8min-replaced.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target bohemian-014000-10min.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles kevin.png,mickaella.png,jordi.png,carole.png,doesnotexist.png,doesnotexist.png,amaury.png,tristan.png --faces faces-bohemian-014000-10min.yaml -o bohemian-014000-10min-replaced.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target bohemian-015400-15min.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles kevin.png,mickaella.png,jordi.png,carole.png,doesnotexist.png,doesnotexist.png,amaury.png,tristan.png --faces faces-bohemian-015400-15min.yaml -o bohemian-015400-15min-replaced.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+ffmpeg -i bohemian.mp4 -ss 00:18:16 -to 00:20:16 -c:v libx264 -an bohemian-1816-2016.mp4
+
+python3.10 run.py --target bohemian-1816-2016.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles kevin.png,mickaella.png,jordi.png,carole.png,mariond.png,mariond.png,amaury.png,tristan.png --faces faces-bohemian-1816-2016.yaml -o bohemian-1816-2016-replaced.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target jurassic2-ba.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles florent.png,muriel.png,gaetan.png,thomasn.png,zoe.png,angie.png,alan.png,dyna.png,mickaelle.png --faces faces-jurassic-ba.yaml -o jurassic-ba-replaced1.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps
+
+python3.10 run.py --target jurassicworld2-0000-0010.mp4 --output-video-quality 1 --sourcefolder . --sourcefiles florent.png,muriel.png,gaetan.png,thomasn.png,zoe.png,angie.png,mickaelle.png,dyna.png,alan.png --faces faces-jurassicworld2-0000-0010.yaml -o jurassicworld2-0000-0010-replaced1.mp4 --execution-provider cpu --frame-processor face_swapper --keep-fps

@@ -3,6 +3,8 @@
 from collections import defaultdict
 import os
 import sys
+
+from roop.face_analyser import get_one_face
 # single thread doubles cuda performance - needs to be set before torch import
 if any(arg.startswith('--execution-provider') for arg in sys.argv):
     os.environ['OMP_NUM_THREADS'] = '1'
@@ -150,31 +152,59 @@ def extract_known_faces(video_path, face_positions):
 
     for frame_key, positions in face_positions.items():
         frame_number = int(re.search(r'\d+', frame_key).group())
-        capture.set(cv2.CAP_PROP_POS_FRAMES, int(frame_number))
+        capture.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
         success, frame = capture.read()
         if not success:
+            print(f"Failed to capture frame {frame_number}")
             continue
 
-        for position in positions:
-            top = int(position['y'] * frame.shape[0])
-            right = int((position['x'] + position['w']) * frame.shape[1])
-            bottom = int((position['y'] + position['h']) * frame.shape[0])
-            left = int(position['x'] * frame.shape[1])
-            face_image = frame[top:bottom, left:right]
-            face_encoding = face_recognition.face_encodings(face_image)
+        frame_width = frame.shape[1]
+        frame_height = frame.shape[0]
 
-            if face_encoding:
-                known_faces[position['num']] = face_image
-                known_face_encodings[position['num']] = face_encoding[0]
+        for position in positions:
+            num = position['num']
+
+            # Calculer les coordonnées absolues à partir des positions relatives
+            rect_x = int(position['x'] * frame_width)
+            rect_y = int(position['y'] * frame_height)
+            rect_w = int(position['w'] * frame_width)
+            rect_h = int(position['h'] * frame_height)
+
+            # Ajuster pour s'assurer que la boîte est entièrement dans l'image
+            x1, y1 = max(0, rect_x), max(0, rect_y)
+            x2, y2 = min(rect_x + rect_w, frame_width), min(rect_y + rect_h, frame_height)
+
+            # Découpage de l'image du visage
+            face_image = frame[y1:y2, x1:x2]
+            if face_image.size == 0:
+                print("Extracted face image is empty. Skipping...")
+                continue
+
+            # Obtenez le visage à partir de la position spécifiée ou le premier visage détecté
+            face = get_one_face(face_image)
+            if face is None:
+                print(f"No face found at position {position.get('position', 0)} in frame {frame_number}")
+                continue
+
+            rgb_face_image = cv2.cvtColor(face_image, cv2.COLOR_BGR2RGB)
+            face_encodings = face_recognition.face_encodings(rgb_face_image)
+
+            if face_encodings:
+                # Supposons qu'il n'y a qu'un seul encodage car un seul visage est censé être récupéré
+                known_faces[num] = face
+                known_face_encodings[num] = face_encodings[0]
+                print(f"Face and encoding stored for face number {num} in frame {frame_number}")
+            else:
+                print("No face encodings generated for detected face.")
 
     capture.release()
+    print('Known faces extracted!')
     return known_faces, known_face_encodings
 
 def load_face_data():
     with open(roop.globals.faces_path, 'r') as file:
         roop.globals.face_data = yaml.safe_load(file)
     print('Face data loaded!')
-    print('roop.globals.face_data=', roop.globals.face_data)
     
 def load_known_faces():
     with open(roop.globals.faces_path, 'r') as file:
